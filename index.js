@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 
 //solve cors 
-app.use(cors({credentials: true, origin: 'http://localhost:3000'}))
+app.use(cors({credentials: true, origin: 'https://api-doe.kinghost.net/dev:22'}))
 
 app.use(express.static('public'));
 
@@ -32,4 +32,4 @@ app.use('/bonus', BonuesRoutes);
 app.use('/schedulegroup', ScheduleGroupRoutes);
 app.use('/notification', NotificationRoutes);
 
-app.listen(3000);
+app.listen(22);
