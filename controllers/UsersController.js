@@ -17,6 +17,7 @@ module.exports = class UsersController {
         }
     }
 
+    //comentario teste
     static async insert(req, res) {
         try {
             const { cpf, name, birth_date, weight, type_blood, id_address, password, sexo} = req.body;
