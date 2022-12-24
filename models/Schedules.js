@@ -7,12 +7,12 @@ module.exports = class Schedules {
     }
 
     static getScheduleByCpf(cpf, id_date) {
-        const sql = `SELECT * FROM schedules WHERE id_user = ${cpf} AND finished = 0 ORDER BY id ASC LIMIT 1`;
+        const sql = `SELECT * FROM schedules WHERE id_user = ${cpf} AND finished = 0 ORDER BY id DESC LIMIT 1`;
         return db.promise().query(sql);
     }
 
     static getScheduleByCpfDate(cpf, id_date) {
-        const sql = `SELECT * FROM schedules WHERE id_user = ${cpf} AND id_date = ${id_date} ORDER BY id ASC`;
+        const sql = `SELECT * FROM schedules WHERE id_user = ${cpf} AND id_date = ${id_date} ORDER BY id ASC `;
         return db.promise().query(sql);
     }
 
@@ -82,7 +82,7 @@ module.exports = class Schedules {
 
     //busca
     static getScheduleFinishedDateUser(id_user, id_date){
-        const sql = `SELECT * FROM schedules WHERE id_user = ${cpf} AND id_date = ${id_date} ORDER BY id ASC LIMIT 1`;
+        const sql = `SELECT * FROM schedules WHERE id_user = ${id_user} AND id_date = ${id_date} ORDER BY id DESC LIMIT 1`;
         return db.promise().query(sql);
     }
 

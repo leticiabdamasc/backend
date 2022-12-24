@@ -40,4 +40,6 @@ module.exports = class Bonus {
         const sql = `SELECT * FROM bonus WHERE fk_hemocentro = ${idHemo} AND id = ${idBonus}`;
         return db.promise().query(sql);
     }
+
+
 }

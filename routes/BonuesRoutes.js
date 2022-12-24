@@ -6,5 +6,4 @@ router.get('/active', BonusController.getAllUser);
 router.get('/all', BonusController.getAllBonus);
 router.patch('/update/:id', BonusController.updateById);
 router.delete('/delete/:id', BonusController.deleteById);
-
 module.exports = router;

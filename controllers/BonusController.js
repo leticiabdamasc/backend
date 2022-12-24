@@ -108,4 +108,6 @@ module.exports = class BonusController {
             res.status(400).json({ err: err });
         }
     }
+
+    
 }

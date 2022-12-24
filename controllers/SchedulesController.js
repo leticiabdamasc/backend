@@ -11,6 +11,7 @@ module.exports = class SchedulesController {
         const { situation, id_hemo, id_date, finished, date_hour } = req.body;
         const token = getToken(req);
         const [user] = await getUserByToken(token);
+        const [result] = await Schedules.getScheduleByCpfDate(user[0].cpf, id_date);
         if (id_date === "") {
             res.status(200).json({ message: "Escolha uma data" });
             return;
@@ -31,58 +32,63 @@ module.exports = class SchedulesController {
             } else if (user[0].sexo === 0 && month < 1) {
                 res.status(200).json({ message: "Não foi possivel agendar uma doação, pois voce não conluiu o tempo de espera" });
                 return;
+            } else if (result.length >= 1) {
+                res.status(200).json({ message: "Voce já tem um agendamento em andamento, para esse dia" });
+                return;
             } else {
-                const [result] = await Schedules.getScheduleByCpfDate(user[0].cpf, id_date);
-                if (result.length >= 1) {
-                    res.status(200).json({ message: "Voce já tem um agendamento em andamento" });
-                    return;
-                }
+                res.status(200).json({ message: "Voce já tem um agendamento em andamento" });
             }
+        } else {
+            const schecule = ({
+                situation,
+                id_user: user[0].cpf,
+                id_hemo,
+                id_date,
+                finished,
+                date_hour,
+            });
+            await Schedules.createSchedules(schecule);
+            res.status(200).json({ message: "Seu agendamento foi efetuado com sucesso, acomapnhe o andamento" });
         }
-        const schecule = ({
-            situation,
-            id_user: user[0].cpf,
-            id_hemo,
-            id_date,
-            finished,
-            date_hour,
-        });
-        await Schedules.createSchedules(schecule);
-        res.status(200).json({ message: "Seu agendamento foi efetuado com sucesso, acomapnhe o andamento" });
+
     }
 
 
     static async getSchedule(req, res) {
-        const id_date = req.params.id_date;
-        console.log(id_date)
         var schedules = [];
         const token = getToken(req);
         const [user] = await getUserByToken(token);
         const [schede] = await Schedules.getScheduleByCpf(user[0].cpf);
-        const [result] = await Schedules.getScheduleByCpfDate(user[0].cpf, schede[0].id_date);
-        console.log(schede)
-        if (result.length !== 0) {
-            const [datehour] = await DateHour.getDateById(result[0].id_date);
-            console.log(result);
-            let dateNow = new Date();
-            for (var i in result) {
-                schedules.push({
-                    "id": result[i].id,
-                    "situation": result[i].situation,
-                    "id_user": user[0].cpf,
-                    "id_hemo": result[i].id_hemo,
-                    "id_date": datehour[0].id,
-                    "dateHour": result[i].date_hour,
-                    "finished": 0,
-                    "id_bonus": 0,
-                    "bonus_used": 0
-                })
+        console.log(schede[0].id_date);
+        if (schede.length == 0) {
+            res.status(200).json({ schedule: [] });
+        } else {
+            const [result] = await Schedules.getScheduleByCpfDate(user[0].cpf, schede[0].id_date);
+            if (result.length !== 0) {
+                const [datehour] = await DateHour.getDateById(result[0].id_date);
+                let dateNow = new Date();
+                for (var i in result) {
+                    schedules.push({
+                        "id": result[i].id,
+                        "situation": result[i].situation,
+                        "id_user": user[0].cpf,
+                        "id_hemo": result[i].id_hemo,
+                        "id_date": datehour[0].id,
+                        "dateHour": result[i].date_hour,
+                        "finished": 0,
+                        "id_bonus": 0,
+                        "bonus_used": 0
+                    })
+                }
+                res.status(200).json({ schedule: schedules });
             }
+
 
         }
 
 
-        res.status(200).json({ schedule: schedules });
+
+
     }
 
     static async deleteScheduleByCpf(req, res) {
