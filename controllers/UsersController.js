@@ -1,7 +1,8 @@
 const Users = require('../models/Users');
+const Address = require('../models/Address');
 const jwt = require('jsonwebtoken');
 const createUserToken = require('../helpers/create-user-token');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 //helpers
 const getToken = require('../helpers/get-token');
@@ -20,7 +21,7 @@ module.exports = class UsersController {
     //comentario teste
     static async insert(req, res) {
         try {
-            const { cpf, name, birth_date, weight, type_blood, id_address, password, sexo} = req.body;
+            const { cpf, name, birth_date, weight, type_blood, id_address, password, sexo } = req.body;
             const [use] = await Users.findUserByCpf(cpf);
             console.log(use);
             if (use.length >= 1) {
@@ -34,7 +35,7 @@ module.exports = class UsersController {
                 name,
                 birth_date,
                 weight,
-                type_blood, 
+                type_blood,
                 id_address,
                 password: passwordHash,
                 sexo
@@ -86,16 +87,29 @@ module.exports = class UsersController {
         }
     }
 
-    static async getUserByCpf(req, res){
+    static async getUserByCpf(req, res) {
         const cpf = req.params.cpf;
         const [users] = await Users.findUserByCpf(cpf);
-        res.status(200).json({user: users[0].name});
+        res.status(200).json({ user: users[0].name });
 
     }
 
-    static async getInfoUser(req, res){
+    static async getInfoUser(req, res) {
         const cpf = req.params.cpf;
         const [users] = await Users.findUserByCpf(cpf);
-        res.status(200).json({user: users[0]});
+        const [address] = await Address.findById(users[0].id_address);
+        const resp = {
+            "cpf": cpf,
+            "name": users[0].name,
+            "birth_date": users[0].birth_date,
+            "weight": users[0].weight,
+            "type_blood":  users[0].type_blood,
+            "address": address[0].street + " " + address[0].number_address + ", " + address[0].district + ", " + address[0].cep ,
+            "password": users[0].password,
+            "sexo": users[0].sexo,
+            "height": users[0].height
+        }
+        console.log(address);
+        res.status(200).json({ user: resp });
     }
 }

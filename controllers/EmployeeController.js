@@ -1,7 +1,7 @@
 const Employee = require('../models/employee');
 const jwt = require('jsonwebtoken');
 const createUserToken = require('../helpers/create-user-token');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 //helpers
 const getToken = require('../helpers/get-token');

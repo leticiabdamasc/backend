@@ -4,7 +4,7 @@ const createHemoToken = require('../helpers/create-hemo-token');
 const getToken = require('../helpers/get-token');
 const getHemoByTokenUser = require('../helpers/get-hemo-by-token');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 module.exports = class HemocentroController {
     static async create(req, res){

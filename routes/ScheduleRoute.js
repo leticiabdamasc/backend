@@ -13,4 +13,5 @@ router.get('/getall', SchedulesController.getAllSchedule);
 router.patch('/updatebonus/:id', SchedulesController.addBonus);
 router.get('/getbonus', SchedulesController.getUserWithBon);
 router.patch('/invalidbonus/:id', SchedulesController.invBonus);
+router.get('/getScheduleHemo', SchedulesController.getScheduleHemocentro);
 module.exports = router;

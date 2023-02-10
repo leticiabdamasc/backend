@@ -1,4 +1,5 @@
 const Schedules = require('../models/Schedules');
+const Users = require('../models/Users');
 const getToken = require('../helpers/get-token');
 const getUserByToken = require('../helpers/get-user-by-token');
 const Bonus = require('../models/Bonus');
@@ -11,45 +12,60 @@ module.exports = class SchedulesController {
         const { situation, id_hemo, id_date, finished, date_hour } = req.body;
         const token = getToken(req);
         const [user] = await getUserByToken(token);
-        const [result] = await Schedules.getScheduleByCpfDate(user[0].cpf, id_date);
-        if (id_date === "") {
-            res.status(200).json({ message: "Escolha uma data" });
-            return;
-        }
-        const [resul] = await Schedules.getAllScheduleByCpf(user[0].cpf);
-        if (resul.length >= 1) {
-            const idDate = resul[0].id_date;
-            const [date] = await DateHour.getDateById(idDate);
-            var date_last = moment(date[0].date, 'YYYY-MM-DD');
-            var now = moment(date_hour, 'YYYY-MM-DD');
-            var month = now.diff(date_last, 'month');
-            console.log(now);
-            console.log(date_last);
-            console.log(month);
-            if (user[0].sexo === 1 && month < 3) {
-                res.status(200).json({ message: "Não foi possivel agendar uma doação, pois voce não conluiu o tempo de espera" });
+        try {
+            const [result] = await Schedules.getScheduleByCpfDate(user[0].cpf, id_date);
+            if (id_date === "") {
+                res.status(200).json({ message: "Escolha uma data" });
                 return;
-            } else if (user[0].sexo === 0 && month < 1) {
-                res.status(200).json({ message: "Não foi possivel agendar uma doação, pois voce não conluiu o tempo de espera" });
-                return;
-            } else if (result.length >= 1) {
-                res.status(200).json({ message: "Voce já tem um agendamento em andamento, para esse dia" });
-                return;
-            } else {
-                res.status(200).json({ message: "Voce já tem um agendamento em andamento" });
             }
-        } else {
-            const schecule = ({
-                situation,
-                id_user: user[0].cpf,
-                id_hemo,
-                id_date,
-                finished,
-                date_hour,
-            });
-            await Schedules.createSchedules(schecule);
-            res.status(200).json({ message: "Seu agendamento foi efetuado com sucesso, acomapnhe o andamento" });
+
+            const [resul] = await Schedules.getAllScheduleByCpf(user[0].cpf);
+            console.log(resul);
+            if (resul.length >= 1) {
+                const idDate = resul[0].id_date;
+                const [date] = await DateHour.getDateById(idDate);
+                var date_last = moment(date[0].date, 'YYYY-MM-DD');
+                var now = moment(date_hour, 'YYYY-MM-DD');
+                var month = now.diff(date_last, 'month');
+
+                if (user[0].sexo === 1 && month < 0) {
+                    res.status(200).json({ message: "Não foi possivel agendar uma doação, pois voce não conluiu o tempo de espera" });
+
+                } else if (user[0].sexo === 0 && month < 0) {
+                    res.status(200).json({ message: "Não foi possivel agendar uma doação, pois voce não conluiu o tempo de espera" });
+
+                } else if (resul[0].finished == 0) {
+                    res.status(200).json({ message: "Não foi possivel agendar uma doação, pois já existe um agendamento aberto" });
+                } else {
+
+                    const schecule = ({
+                        situation,
+                        id_user: user[0].cpf,
+                        id_hemo,
+                        id_date,
+                        finished,
+                        date_hour,
+                    });
+                    await Schedules.createSchedules(schecule);
+                    res.status(200).json({ message: "Seu agendamento foi efetuado com sucesso, acomapnhe o andamento" });
+
+                }
+            } else {
+                const schecule = ({
+                    situation,
+                    id_user: user[0].cpf,
+                    id_hemo,
+                    id_date,
+                    finished,
+                    date_hour,
+                });
+                await Schedules.createSchedules(schecule);
+                res.status(200).json({ message: "Seu agendamento foi efetuado com sucesso, acomapnhe o andamento" });
+            }
+        } catch (e) {
+            res.status(400).json({ message: "Houve um erro!" + e });
         }
+
 
     }
 
@@ -59,7 +75,6 @@ module.exports = class SchedulesController {
         const token = getToken(req);
         const [user] = await getUserByToken(token);
         const [schede] = await Schedules.getScheduleByCpf(user[0].cpf);
-        console.log(schede[0].id_date);
         if (schede.length == 0) {
             res.status(200).json({ schedule: [] });
         } else {
@@ -130,8 +145,8 @@ module.exports = class SchedulesController {
 
     static async finished(req, res) {
         const id = req.params.id;
-        const finished = req.body.finished;
-        await Schedules.finishedSchedules(id, finished);
+        const { finished, id_user } = req.body;
+        await Schedules.finishedSchedules(id, finished, id_user);
         res.status(200).json({ message: "Esse agendamento foi finalizado!" });
     }
 
@@ -176,4 +191,34 @@ module.exports = class SchedulesController {
         }
     }
 
+
+    static async getScheduleHemocentro(req, res) {
+        let situacao_text = "";
+        const list_schedule = [];
+        try {
+            const [result] = await Schedules.getScheduleHemocentro();
+           
+            for (var i = 0; i < result.length; i++) {
+                const [users] = await Users.findUserByCpf(result[i].id_user)
+            const [data] = await DateHour.getDateById(result[i].id_date);
+                situacao_text = result[i].situation === 1 ? "aceitar" : result[i].situation === 2 ? "Agendado" : result[i].situation === 3 ? "em andamento" : result[i].situation === "Finalizar";
+                list_schedule.push({
+                    "name": users[0].name,
+                    "situacao_text": situacao_text,
+                    "cpf": users[0].cpf,
+                    "id_date": result[i].id_date,
+                    "id_hemo": result[i].id_hemo,
+                    "date_hour": result[i].date_hour,
+                    "data_agendamento": data[0].date,
+                    "hora_agendamento": data[0].hour,
+                    "situation": result[i].situation
+                });
+            }
+
+            res.status(200).json({ schedules: list_schedule });
+        } catch (e) {
+            res.status(404).json({ message: "Ops, houve um erro " + e });
+
+        }
+    }
 } 

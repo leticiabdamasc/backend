@@ -12,7 +12,12 @@ module.exports = class AssignedBonus {
     }
 
     static findByUser(id_user) {
-        const sql = `SELECT * FROM bonusassigned WHERE id_user = ${id_user}`;
+        const sql = `SELECT * FROM bonusassigned WHERE id_user = ${id_user} AND used = 0 `;
+        return db.promise().query(sql);
+    }
+
+    static updateStateUsed(id, id_user) {
+        const sql = `UPDATE bonusassigned SET used = 1 WHERE id = ${id} AND id_user = ${id_user}`;
         return db.promise().query(sql);
     }
 }

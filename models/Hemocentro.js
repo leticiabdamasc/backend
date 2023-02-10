@@ -19,7 +19,7 @@ module.exports = class Hemocentro{
     }
 
     static getAllHemocentro(){
-        const sql = "SELECT * FROM hemocentro";
+        const sql = "SELECT * FROM hemocentro WHERE cnpj = '78945123'";
         return db.promise().query(sql);
     }
 }

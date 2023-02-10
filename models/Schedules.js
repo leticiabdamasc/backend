@@ -17,7 +17,7 @@ module.exports = class Schedules {
     }
 
     static getAllScheduleByCpf(cpf) {
-        const sql = `SELECT * FROM schedules WHERE id_user = ${cpf} GROUP BY id_date`;
+        const sql = `SELECT * FROM schedules WHERE id_user = ${cpf} GROUP BY id_date ORDER BY id_date DESC`;
         return db.promise().query(sql);
     }
 
@@ -31,8 +31,8 @@ module.exports = class Schedules {
         return db.promise().query(sql);
     }
 
-    static finishedSchedules(id, finished) {
-        const sql = `UPDATE schedules SET finished = ${finished} WHERE id_date = ${id}`;
+    static finishedSchedules(id, finished, id_user) {
+        const sql = `UPDATE schedules SET finished = ${finished} WHERE id_date = ${id} AND id_user = ${id_user}`;
         return db.promise().query(sql);
     }
 
@@ -60,7 +60,7 @@ module.exports = class Schedules {
         return db.promise().query(sql);
     }
     //buscar registro de doações bonificadas
-    static findScheduleWithBonus(cpf){
+    static findScheduleWithBonus(cpf) {
         const sql = `SELECT S.id,  S.id_bonus, S.bonus_used, B.name_establishment, H.cnpj, B.word_key, B.value, B.expired, H.name FROM schedules 
         AS S INNER JOIN date_hour AS D ON S.id_date = D.id 
         INNER JOIN bonus B ON B.id = S.id_bonus 
@@ -69,7 +69,7 @@ module.exports = class Schedules {
         return db.promise().query(sql);
     }
 
-    static invalidBonus(id){
+    static invalidBonus(id) {
         const sql = `UPDATE schedules SET bonus_used = 1 WHERE id = ${id}`;
         return db.promise().query(sql);
     }
@@ -81,10 +81,14 @@ module.exports = class Schedules {
     }
 
     //busca
-    static getScheduleFinishedDateUser(id_user, id_date){
+    static getScheduleFinishedDateUser(id_user, id_date) {
         const sql = `SELECT * FROM schedules WHERE id_user = ${id_user} AND id_date = ${id_date} ORDER BY id DESC LIMIT 1`;
         return db.promise().query(sql);
     }
 
-  
+    static getScheduleHemocentro() {
+        const sql = `SELECT * FROM schedules GROUP BY id_user`;
+        return db.promise().query(sql);
+    }
+
 }
